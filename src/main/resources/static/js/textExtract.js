@@ -57,8 +57,40 @@ new Vue({
             })
         },
 
+        handleExceed(files, fileList){
+            this.$message.warning(`当前限制选择 3 个文件，本次选择了 ${files.length} 个文件，共选择了 ${files.length + fileList.length} 个文件`);
+        },
+
         changFile(file, fileList) {
             const _this = this;
+            const isLt20M = file.size / 1024 / 1024 < 20;
+            const index = file.name.lastIndexOf(".");
+            const fileType = file.name.substring(index + 1,file.name.length);
+
+            if (_this.fileList.length > 0){
+                let idx = _this.fileList.findIndex(item => item.name === file.name);
+                if (idx > -1){
+                    let idx = fileList.findIndex(item => item.uid === file.uid);
+                    fileList.splice(idx, 1);
+                    this.$message.warning( file.name + `文件已存在，请勿重复上传！`);
+                    return;
+                }
+            }
+
+            if (fileType != 'log' && fileType != 'txt'){
+                let idx = fileList.findIndex(item => item.uid === file.uid);
+                fileList.splice(idx, 1);
+                this.$message.warning( file.name + `文件不符合上传文件要求，请检查重新上传！`);
+                return;
+            }
+
+            if (!isLt20M){
+                let idx = fileList.findIndex(item => item.uid === file.uid);
+                fileList.splice(idx, 1);
+                this.$message.warning( file.name + `文件大小过大，请检查重新上传！`);
+                return;
+            }
+
             _this.fileList.push({
                 id: file.uid,
                 name: file.name,

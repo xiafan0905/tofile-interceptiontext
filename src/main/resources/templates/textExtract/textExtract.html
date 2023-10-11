@@ -70,10 +70,11 @@
                                 :file-list="fileList"
                                 :limit="3"
                                 multiple
+                                :on-exceed="handleExceed"
                                 :on-change="changFile"
                                 :on-remove="handleRemove">
                                 <el-button size="small" type="primary">点击上传</el-button>
-                                <div slot="tip" class="el-upload__tip">只能上传txt文件</div>
+                                <div slot="tip" class="el-upload__tip">只能上传.txt\.log文件</div>
                             </el-upload>
                         </el-form-item>
                     </el-col>
