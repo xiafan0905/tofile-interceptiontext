@@ -68,9 +68,9 @@ new Vue({
         },
 
         sortChange(){
-          if (!this.form.sortOrNot){
-              this.form.sortOrder = '';
-              this.form.sortPosition = '';
+          if (!this.extractForm.sortOrNot){
+              this.extractForm.sortOrder = '';
+              this.extractForm.sortPosition = '';
           }
         },
 

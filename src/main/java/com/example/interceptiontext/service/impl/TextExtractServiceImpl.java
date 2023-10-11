@@ -64,7 +64,7 @@ public class TextExtractServiceImpl implements TextExtractService {
             response.setHeader("Content-Disposition", "attachment;filename=" + fileName + ".xlsx");
             ServletOutputStream out=response.getOutputStream();
             writer.flush(out, true);
-            //关闭wirter，释放内存
+            //关闭writer，释放内存
             writer.close();
             //关机输出servlet流
             IoUtil.close(out);
