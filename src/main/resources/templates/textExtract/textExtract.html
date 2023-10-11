@@ -2,34 +2,111 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>文字截取</title>
 </head>
 <!-- thymeleaf引入CSS样式 -->
-<link th:href="@{/css/textExtract.css}" type="text/css" rel="stylesheet"/>
-<link th:href="@{/css/elementui.css}" type="text/css" rel="stylesheet"/>
-<link th:href="@{/css/common.css}" type="text/css" rel="stylesheet"/>
+<link th:href="@{/css/textExtract.css}" href="../../static/css/textExtract.css" type="text/css" rel="stylesheet"/>
+<link th:href="@{/css/elementui.css}" href="../../static/css/elementui.css" type="text/css" rel="stylesheet"/>
 
 <body>
     <div id="textExtract">
-        <el-upload
-                class="upload-demo"
-                action="https://jsonplaceholder.typicode.com/posts/"
-                :on-preview="handlePreview"
-                :on-remove="handleRemove"
-                :before-remove="beforeRemove"
-                multiple
-                :limit="3"
-                :on-exceed="handleExceed"
-                :file-list="fileList">
-            <el-button size="small" type="primary">点击上传</el-button>
-            <div slot="tip" class="el-upload__tip">只能上传jpg/png文件，且不超过500kb</div>
-        </el-upload>
+        <div class="channel">
+            <el-form :inline="true" :model="extractForm" ref="extractForm" class="demo-form-inline">
+                <el-row>
+                    <el-col :span="12">
+                        <el-form-item label="截取文字">
+                            <el-input v-model="extractForm.startingText" placeholder="请输入起始文字"></el-input>
+                        </el-form-item>
+                    </el-col>
+                    <el-col :span="12">
+                        <el-form-item label="是否排序">
+                            <el-switch
+                                v-model="extractForm.sortOrNot"
+                                active-color="#13ce66"
+                                inactive-color="#ff4949"
+                                @change="sortChange()">
+                            </el-switch>
+                        </el-form-item>
+                    </el-col>
+                </el-row>
+                <el-row v-if="extractForm.sortOrNot">
+                    <el-col :span="12">
+                        <el-form-item label="排序方式">
+                            <el-select v-model="extractForm.sortOrder" placeholder="请选择排序方式">
+                                <el-option
+                                    v-for="item in options"
+                                    :key="item.value"
+                                    :label="item.label"
+                                    :value="item.value">
+                                </el-option>
+                            </el-select>
+                        </el-form-item>
+                    </el-col>
+                    <el-col :span="12" v-if="extractForm.sortOrder == 3">
+                        <el-form-item label="排序位置">
+                            <el-input v-model="extractForm.sortPosition" placeholder="请输入从第几位排序"></el-input>
+                        </el-form-item>
+                    </el-col>
+                </el-row>
+                <el-row>
+                    <el-col :span="12">
+                        <el-form-item label="开始位置">
+                            <el-input v-model="extractForm.startingPosition" placeholder="请输入开始位置，如：9"></el-input>
+                        </el-form-item>
+                    </el-col>
+                    <el-col :span="12">
+                        <el-form-item label="结束位置">
+                            <el-input v-model="extractForm.endPosition" placeholder="请输入结束位置，如：20"></el-input>
+                        </el-form-item>
+                    </el-col>
+                </el-row>
+
+                <el-row>
+                    <el-col :span="12">
+                        <el-form-item>
+                            <el-upload ref="uploadFile"
+                                :auto-upload="false"
+                                action="#"
+                                :file-list="fileList"
+                                :limit="3"
+                                multiple
+                                :on-change="changFile"
+                                :on-remove="handleRemove">
+                                <el-button size="small" type="primary">点击上传</el-button>
+                                <div slot="tip" class="el-upload__tip">只能上传txt文件</div>
+                            </el-upload>
+                        </el-form-item>
+                    </el-col>
+                    <el-col :span="12">
+                        <el-form-item>
+                            <el-button style="margin-top: 20px;" type="primary" :disabled="submitDisable" @click="submitForm()">开始截取</el-button>
+                        </el-form-item>
+                    </el-col>
+                </el-row>
+            </el-form>
+        </div>
+        <div class="container">
+            <div class="line" style="--color:#ec3e27;--x:3;--z:3;--d:1;"></div>
+            <div class="line" style="--color:#fff;--x:3;--z:2;--d:2;"></div>
+            <div class="line" style="--color:#fff;--x:4;--z:1;--d:3;"></div>
+            <div class="line" style="--color:#fd79a8;--x:4;--z:0;--d:1;"></div>
+            <div class="line" style="--color:#fff;--x:6;--z:-1;--d:2;"></div>
+            <div class="line" style="--color:#0984e3;--x:6;--z:-2;--d:3;"></div>
+            <div class="line" style="--color:#fff;--x:8;--z:-3;--d:1;"></div>
+            <div class="line" style="--color:#fff;--x:10;--z:-4;--d:2;"></div>
+            <div class="line" style="--color:#fff;--x:12;--z:-5;--d:3;"></div>
+            <div class="line" style="--color:#fff;--x:14;--z:-6;--d:1;"></div>
+            <div class="line" style="--color:#fff;--x:16;--z:-7;--d:2;"></div>
+            <div class="line" style="--color:#fff;--x:18;--z:-8;--d:3;"></div>
+            <div class="line" style="--color:#e056fd;--x:20;--z:-9;--d:1;"></div>
+        </div>
     </div>
 </body>
 
 <!-- thymeleaf引入JS文件 -->
-<script type="text/javascript" src="../../static/js/jquery.min.js" th:src="@{/js/jquery.min.js}"></script>
 <script type="text/javascript" src="../../static/js/vue.js" th:src="@{/js/vue.js}"></script>
+<script type="text/javascript" src="../../static/js/axios.min.js" th:src="@{/js/axios.min.js}"></script>
 <script type="text/javascript" src="../../static/js/elementui.js" th:src="@{/js/elementui.js}"></script>
+<script type="text/javascript" src="../../static/js/index.js" th:src="@{/js/index.js}"></script>
 <script type="text/javascript" src="../../static/js/textExtract.js" th:src="@{/js/textExtract.js}"></script>
 </html>

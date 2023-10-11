@@ -5,22 +5,93 @@ new Vue({
     //定义变量
     data() {
         return{
-            fileList: [{name: 'food.jpeg', url: 'https://fuss10.elemecdn.com/3/63/4e7f3a15429bfda99bce42a18cdd1jpeg.jpeg?imageMogr2/thumbnail/360x360/format/webp/quality/100'}, {name: 'food2.jpeg', url: 'https://fuss10.elemecdn.com/3/63/4e7f3a15429bfda99bce42a18cdd1jpeg.jpeg?imageMogr2/thumbnail/360x360/format/webp/quality/100'}]
+            fileList: [],
+            submitDisable: true,
+            extractForm: {
+                startingText: '',
+                sortOrNot: false,
+                sortOrder: '',
+                sortPosition: '',
+                startingPosition: '',
+                endPosition: ''
+            },
+            options: [{
+                value: '1',
+                label: '截取文字首位'
+            }, {
+                value: '2',
+                label: '截取文字末位'
+            }, {
+                value: '3',
+                label: '截取文字某位'
+            }],
         }
     },
 
     methods:{
-        handleRemove(file, fileList) {
-            console.log(file, fileList);
+        submitForm(){
+            const _this = this;
+            const formData = new FormData();
+            for (let i = 0; i < _this.fileList.length; i++) {
+                formData.append(`files`, _this.fileList[i].file);
+            }
+            formData.append("extractForm", JSON.stringify(_this.extractForm));
+            axios({
+                method: 'POST',
+                url: getRootPath()+"/textExtractHandle",
+                data: formData,
+                timeout: 10000,
+                //表明返回服务器返回的数据类型
+                responseType: 'blob'
+            }).then(function (res) {
+                const data = res.data;
+                const blob = new Blob([data], {type: 'application/octet-stream'});
+                const url = URL.createObjectURL(blob);
+                const exportLink = document.createElement('a');
+                let fileName = res.headers["content-disposition"].split(";")[1].split("filename=")[1]
+                exportLink.setAttribute("download",decodeURI(fileName));
+                exportLink.href = url;
+                document.body.appendChild(exportLink);
+                exportLink.click();
+                document.body.removeChild(exportLink);
+            })
         },
-        handlePreview(file) {
-            console.log(file);
+
+        changFile(file, fileList) {
+            const _this = this;
+            _this.fileList.push({
+                id: file.uid,
+                name: file.name,
+                file: file.raw
+            })
+            _this.submitDisable = false;
         },
-        handleExceed(files, fileList) {
-            this.$message.warning(`当前限制选择 3 个文件，本次选择了 ${files.length} 个文件，共选择了 ${files.length + fileList.length} 个文件`);
+
+        sortChange(){
+          if (!this.form.sortOrNot){
+              this.form.sortOrder = '';
+              this.form.sortPosition = '';
+          }
         },
-        beforeRemove(file, fileList) {
-            return this.$confirm(`确定移除 ${ file.name }？`);
+
+        //清空文件列表
+        clearFileList (id) {
+            let fileListIdx = this.fileList.findIndex(item => item.id === id);
+            this.fileList.splice(fileListIdx, 1);
+            if (this.fileList.length == 0){
+                this.submitDisable = true;
+            }
+        },
+
+        //清空显示列表
+        clearShowList (uid) {
+            let idx = this.$refs['uploadFile'].uploadFiles.findIndex(item => item.uid === uid);
+            this.$refs.uploadFile.uploadFiles.splice(idx, 1);
+        },
+
+        handleRemove(file) {
+            this.clearFileList(file.uid);
+            this.clearShowList(file.uid);
         }
     },
 
